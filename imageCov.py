@@ -29,4 +29,5 @@ def toGray(jpg_file, pgm_dir):
 
 # 将所有的jpg文件放在当前工作目录，或者 cd {存放jpg文件的目录}
 for jpg_file in glob.glob("./*.jpg"):
+    #jpg2pgm(jpg_file, "./pgm/")
     toGray(jpg_file, "./pgm/")
