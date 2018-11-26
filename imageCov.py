@@ -4,7 +4,7 @@ import os.path
 import glob
 
 
-# python 函数
+# python 函数 size
 # 功 能：将一张 jpg文件转pgm格式文件
 # 参 数：jpg_file : 欲转换的jpg文件名
 #              pgm_dir  : 存放 pgm 文件的目录
