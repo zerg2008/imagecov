@@ -4,8 +4,8 @@ import sensor, image, time,pyb
 
 
 
-#进行边缘增强
-def edge_Enhance(img):
+#进行纵向边缘增强
+def edge_Enhance_Vertical(img):
     kernel_size = 2 # kernel width = (size*2)+1, kernel height = (size*2)+1
     kernel = [0,-1, 0,1,0,\
               0,-1, 0,1,0,\
@@ -33,15 +33,51 @@ def edge_Enhance(img):
 #进行茶杯检测
 def cup_Detection(img,cup_Width):
     resultList = []
-    img = edge_Enhance(img)
+    theta1_Angle = False
+    theta2_Angle = False
+    img = edge_Enhance_Vertical(img)
     lineList = img.find_lines(threshold = 3000, theta_margin = 40, rho_margin = 20)
     for l in lineList:
         for l1 in lineList:
-            if(l.theta()<10)and(l1.theta()<10):
+            theta1_Angle = True if((l.theta()<10)or(l.theta()>170)) else False
+            theta2_Angle = True if((l1.theta()<10)or(l1.theta()>170)) else False
+            if(theta1_Angle)and(theta2_Angle):
                 if(abs(l.x1()-l1.x1())>(cup_Width-8))and(abs(l.x1()-l1.x1())<(cup_Width+8)):
                     resultList.append(l)
                     resultList.append(l1)
                     return resultList
+    return resultList
+
+#对横向边缘进行增强
+def edge_Enhance_Horizontal(img):
+    kernel_size = 2 # kernel width = (size*2)+1, kernel height = (size*2)+1
+    kernel = [0, 0, 0, 0, 0,\
+              1, 1, 1, 1, 1,\
+              0, 0, 0, 0, 0,\
+             -1,-1, -1,-1,-1,\
+              0, 0, 0, 0, 0]
+    thresholds = [(100, 255)] # grayscale thresholds
+
+    kernel1_size = 1 # kernel width = (size*2)+1, kernel height = (size*2)+1
+    kernel1 = [-1, -1, -1,\
+              -1, +9, -1,\
+              -1, -1, -1]
+
+    img.morph(kernel_size, kernel)
+    img.mean(1)
+    img.morph(kernel1_size, kernel1)
+    return img
+
+#对水位线进行检测
+def water_Level_Detection(img,water_Level):
+    resultList = []
+    img = edge_Enhance_Horizontal(img)
+    lineList = img.find_lines(threshold = 3000, theta_margin = 40, rho_margin = 20)
+    for l in lineList:
+        if(l.theta()>85)and(l1.theta()<95):
+            if((l.y1()<water_Level):
+                resultList.append(l)
+                return resultList
     return resultList
 
 
