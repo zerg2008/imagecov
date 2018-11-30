@@ -2,8 +2,6 @@
 import sensor, image, time,pyb
 
 
-
-
 #进行纵向边缘增强
 def edge_Enhance_Vertical(img):
     kernel_size = 2 # kernel width = (size*2)+1, kernel height = (size*2)+1
@@ -18,7 +16,7 @@ def edge_Enhance_Vertical(img):
     kernel1 = [-1, -1, -1,\
               -1, +9, -1,\
               -1, -1, -1]
-
+    img.erode(1, threshold = 2)
     img.morph(kernel_size, kernel)
     #img.morph(kernel1_size, kernel1)
     #img.median(1, percentile=0.5)
@@ -74,8 +72,8 @@ def water_Level_Detection(img,water_Level):
     img = edge_Enhance_Horizontal(img)
     lineList = img.find_lines(threshold = 3000, theta_margin = 40, rho_margin = 20)
     for l in lineList:
-        if(l.theta()>85)and(l1.theta()<95):
-            if((l.y1()<water_Level):
+        if(l.theta()>85)and(l.theta()<95):
+            if(l.y1()<water_Level):
                 resultList.append(l)
                 return resultList
     return resultList
@@ -101,15 +99,15 @@ iCount = 0
 haveCount = 0
 resultList = []
 
+contral_Switch = False
+
 led.on()
 time.sleep(150)
 led.off()
 while(True):
     clock.tick()
     img = sensor.snapshot().lens_corr(1.5)
-    #img.morph(kernel_size, kernel)
-    #img.binary(thresholds)
-    img.erode(1, threshold = 2)
+
     result =cup_Detection(img,70)
     if(len(result)):
         print("result: %d" % len(result))
@@ -120,16 +118,32 @@ while(True):
         print("iCount: %d" % iCount)
         if(haveCount >=2):
             print("haveCount: %d"% haveCount)
-            time.sleep(150)
-            led.on()
+            contral_Switch = True
         else:
-            time.sleep(150)
-            led.off()
+            contral_Switch = False
         iCount = 0
         haveCount = 0
+
+    # water level detection,if the contral_Switch is true ,
+    # it means there is a cup ,then,we need to detect the water level
+
+    if(contral_Switch):
+        img = sensor.snapshot().lens_corr(1.5)
+        water_Level_Line = water_Level_Detection(img,100)
+        if(len(water_Level_Line)):
+            for i in water_Level_Line:
+                if(i.y1()>80):
+                    contral_Switch = False
+
         #for i in resultList:
             #img.draw_line(i.line(), color = (255, 255, 0))
             #print(i)
 
+    if(contral_Switch):
+        time.sleep(150)
+        led.on()
+    else:
+        led.off()
+        time.sleep(150)
 
     print("FPS %f" % clock.fps())
